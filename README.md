@@ -1,3 +1,7 @@
+<img width="633" height="348" alt="WPS图片(1)" src="https://github.com/user-attachments/assets/33bfe9db-6a8e-4a71-b339-08e6003a5595" />
+<img width="633" height="348" alt="WPS图片(1)" src="https://github.com/user-attachments/assets/2b57a3e7-94b3-4ba3-9cbb-ca852dbbef7b" />
+<img width="633" height="348" alt="WPS图片(1)" src="https://github.com/user-attachments/assets/257a7d92-86df-4040-adaa-f1e55ca5fb4a" />
+<img width="633" height="348" alt="WPS图片(1)" src="https://github.com/user-attachments/assets/1d791c73-df6f-4180-bb5f-fd9507d2459d" />
 # Stock Sentiment Dashboard — 股票情感预测可视化前端
 
 > 北师港浸大课程项目 · 前端独立开发
@@ -70,27 +74,6 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T>
 ```
 
 Error handling: network errors, non-2xx responses, and JSON parse failures are all caught and surfaced to the UI via status indicators.
-
-## 📸 Screenshots
-
-> Run the app locally and add screenshots here. Recommended captures:
-
-| Screenshot | What to capture |
-|-----------|-----------------|
-| `overview.png` | Overview tab with metrics cards and model comparison chart |
-| `experiments.png` | Experiments tab showing rolling-window line chart and feature importance |
-| `prediction.png` | Prediction Demo tab with UP/DOWN result and probability bars |
-| `backtest.png` | Risk & Backtest tab with colored return chart |
-
-To add screenshots:
-1. Create a `docs/screenshots/` folder in this repo
-2. Take screenshots while running the app
-3. Reference them here:
-```markdown
-![Overview](docs/screenshots/overview.png)
-```
-
-Or simply drag-and-drop images into the GitHub README editor.
 
 ## 🚀 Getting Started
 
