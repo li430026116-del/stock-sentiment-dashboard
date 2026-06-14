@@ -1,133 +1,151 @@
-# TSLA Sentiment Lab — Frontend
+# Stock Sentiment Dashboard — 股票情感预测可视化前端
 
-> Interactive dashboard for the *Tesla Stock Movement Prediction with Market Sentiment* course project.  
-> Built with React 19 + TypeScript + Vite. Connects to a FastAPI backend via REST.
+> 北师港浸大课程项目 · 前端独立开发
 
----
+An interactive single-page analytics dashboard for a **stock sentiment prediction system** (TSLA next-day up/down classification). Built with React 19 + TypeScript + Vite, featuring 5 chart types, a dual-mode toggle, and 7 analytical tabs.
 
-## Table of Contents
+The ML pipeline (FinBERT sentiment → XGBoost classifier) runs on the backend; this repo contains the **complete frontend** that visualizes model results, experiment comparisons, and backtest performance.
 
-1. [Project Overview](#1-project-overview)
-2. [Tech Stack](#2-tech-stack)
-3. [Features & Pages](#3-features--pages)
-4. [Getting Started](#4-getting-started)
-5. [Environment Variables](#5-environment-variables)
-6. [Project Structure](#6-project-structure)
-7. [Data Visualization](#7-data-visualization)
-8. [Backend API Contract](#8-backend-api-contract)
-9. [Screenshots](#9-screenshots)
+## ✨ Highlights
 
----
+- **7 Tab modules** covering the full ML experiment lifecycle: overview → pipeline → experiments → sentiment → prediction → backtest → exploratory analysis
+- **5 Recharts chart types**: grouped bar, line, stacked bar, feature-importance horizontal bar, Cell-colored return chart
+- **Demo / Strict dual-mode toggle**: one switch synchronously drives prediction API, risk signals, and backtest across 3 views
+- **~1,980 lines** of frontend code including a 740-line custom CSS design system (no UI library)
+- **Type-safe API layer**: generic `fetch` wrapper in `api.ts` with full TypeScript typing for all 8 endpoints
 
-## 1. Project Overview
+## 🛠 Tech Stack
 
-<!-- 
-  Write 2–3 sentences:
-  - What the system predicts (TSLA next-day price direction)
-  - The role of sentiment (tweet sentiment + FinBERT scoring → XGBoost features)
-  - What the frontend exposes (interactive demo, risk signals, backtest, Maotai EDA)
--->
+| Layer | Technology |
+|-------|-----------|
+| Framework | React 19.2.3 + TypeScript 5.9.3 |
+| Build Tool | Vite 7.3.0 |
+| State Management | React built-in (useState / useMemo / useEffect) |
+| Routing | None — 7-tab SPA with conditional rendering |
+| UI Components | Fully custom CSS (~740 lines design system) |
+| Icons | lucide-react 0.562.0 |
+| Data Visualization | Recharts 3.6.0 |
+| Backend Communication | Native fetch (typed generic wrapper in api.ts) |
+| Responsive | ResponsiveContainer for all charts; CSS Grid layout |
 
-## 2. Tech Stack
-
-| Category | Choice | Version |
-|---|---|---|
-| Framework | React | 19.2.3 |
-| Language | TypeScript | 5.9.3 |
-| Build tool | Vite | 7.3.0 |
-| Data viz | Recharts | 3.6.0 |
-| Icons | lucide-react | 0.562.0 |
-| Styling | Custom CSS (no library) | — |
-| State management | React built-ins (useState / useMemo) | — |
-| Routing | Tab-based SPA (no router library) | — |
-| Backend communication | Native `fetch` (custom wrapper) | — |
-
-## 3. Features & Pages
-
-The app is a single-page application with 7 tab-based views:
+## 📋 Features & Pages
 
 | Tab | Description |
-|---|---|
-| **Overview** | Key metrics (Accuracy, F1, ROC-AUC) with a final-model grouped bar chart; switches between Demo and Strict modes |
-| **Pipeline** | 6-step research pipeline visualization + two delivery-path cards (Demo vs Strict) |
-| **Experiments** | Rolling-window line charts, strict tuning-version comparison, feature-importance bar list, full experiments table |
-| **Sentiment Insights** | Sentiment benchmark bar chart; extreme-tweet-event vs non-event return cards |
-| **Prediction Demo** | Date picker → live API call → UP/DOWN label with probability bars; supports Demo & Strict modes |
-| **Risk & Backtest** | Risk signal card + configurable date-range backtest with per-trade return bar chart (green/red cells) |
-| **Maotai Analysis** | Exploratory A-share price analysis — stacked yearly up/down bar chart + descriptive stats table |
+|-----|-------------|
+| **Overview** | Core metrics (Accuracy / F1 / ROC-AUC) with final model comparison bar chart; Demo/Strict mode switch |
+| **Pipeline** | Visual 6-step research pipeline + Demo vs Strict delivery path explanation cards |
+| **Experiments** | Rolling-window line chart, Strict tuning version comparison, Top-15 feature importance horizontal bar, full experiment data table |
+| **Sentiment Insights** | Sentiment model benchmark comparison bar chart + extreme tweet event vs non-event 1/3-day return comparison |
+| **Prediction Demo** | Date dropdown → API call → UP/DOWN label + probability progress bars |
+| **Risk & Backtest** | Risk signal cards (stop-loss/take-profit) + custom date-range backtest + per-day strategy return chart with green/red coloring |
+| **Maotai Analysis** | Kweichow Moutai (A-share) exploratory analysis: stacked bar chart (annual up/down ratio) + descriptive statistics table |
 
-## 4. Getting Started
+### Interaction Highlights
+
+- **Global mode switch**: Demo/Strict toggle synchronously affects Overview metrics, Prediction, and Risk/Backtest data sources
+- **Lazy loading**: Maotai data only fetched when user switches to that tab
+- **Real-time API status**: top bar shows loading spinner / "Backend connected" indicator
+- **Cell coloring**: backtest return bars auto-colored green (positive) / red (negative)
+
+## 🔌 Backend API Contract
+
+The frontend communicates with 8 backend REST endpoints:
+
+| Method | Endpoint | Used In | Description |
+|--------|----------|---------|-------------|
+| GET | `/api/health` | App (top bar) | Backend health check; drives connection status indicator |
+| GET | `/api/metrics?mode={demo\|strict}` | Overview | Returns Accuracy, F1, ROC-AUC and model comparison data |
+| GET | `/api/experiments` | Experiments | Rolling-window results, tuning versions, feature importances |
+| GET | `/api/sentiment` | Sentiment Insights | Sentiment model benchmarks and event-return analysis |
+| POST | `/api/predict` | Prediction Demo | `{date, mode}` → `{direction, probability}` |
+| GET | `/api/risk?mode={demo\|strict}` | Risk & Backtest | Risk signals (stop-loss, take-profit levels) |
+| POST | `/api/backtest` | Risk & Backtest | `{start_date, end_date, mode}` → per-day returns array |
+| GET | `/api/maotai` | Maotai Analysis | Moutai historical data, annual stats, descriptive statistics |
+
+All API calls go through `api.ts`:
+
+```typescript
+// Typed generic fetch wrapper
+async function request<T>(endpoint: string, options?: RequestInit): Promise<T>
+```
+
+Error handling: network errors, non-2xx responses, and JSON parse failures are all caught and surfaced to the UI via status indicators.
+
+## 📸 Screenshots
+
+> Run the app locally and add screenshots here. Recommended captures:
+
+| Screenshot | What to capture |
+|-----------|-----------------|
+| `overview.png` | Overview tab with metrics cards and model comparison chart |
+| `experiments.png` | Experiments tab showing rolling-window line chart and feature importance |
+| `prediction.png` | Prediction Demo tab with UP/DOWN result and probability bars |
+| `backtest.png` | Risk & Backtest tab with colored return chart |
+
+To add screenshots:
+1. Create a `docs/screenshots/` folder in this repo
+2. Take screenshots while running the app
+3. Reference them here:
+```markdown
+![Overview](docs/screenshots/overview.png)
+```
+
+Or simply drag-and-drop images into the GitHub README editor.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js ≥ 18
+- Backend server running (see backend repo)
+
+### Installation
 
 ```bash
+# Clone the repo
+git clone https://github.com/YOUR_USERNAME/stock-sentiment-dashboard.git
+cd stock-sentiment-dashboard
+
 # Install dependencies
 npm install
 
-# Start dev server (connects to backend on port 8000)
+# Configure backend URL
+cp .env.example .env
+# Edit .env to set VITE_API_BASE_URL=http://localhost:8000
+
+# Start dev server
 npm run dev
+```
 
-# Production build
+The app will be available at `http://localhost:5173`.
+
+### Build for Production
+
+```bash
 npm run build
+# Output in dist/
 ```
 
-The backend must be running before the frontend loads data. See the root `README.md` for backend startup instructions.
-
-## 5. Environment Variables
-
-Copy `.env.example` to `.env` and edit as needed:
-
-```env
-# Override the backend base URL (default: same hostname, port 8000)
-VITE_API_BASE=http://127.0.0.1:8000
-```
-
-Leave `VITE_API_BASE` unset in local development — the app auto-detects `window.location.hostname:8000`.
-
-## 6. Project Structure
+## 📁 Project Structure
 
 ```
-frontend/
+stock-sentiment-dashboard/
 ├── src/
-│   ├── App.tsx          # All 7 tab views, state, chart wiring (~1 000 lines)
-│   ├── api.ts           # Typed fetch wrapper + all backend request functions (~300 lines)
-│   ├── main.tsx         # React root mount
-│   ├── styles.css       # Full custom design system (~740 lines)
-│   └── vite-env.d.ts    # Vite type reference
+│   ├── App.tsx           # Main component (7 tabs + mode toggle)
+│   ├── App.css           # Custom design system (~740 lines)
+│   ├── api.ts            # Typed API wrapper (8 endpoints)
+│   ├── components/
+│   │   ├── MetricCard.tsx # Reusable metric display card
+│   │   └── StatusPill.tsx # API status indicator
+│   └── main.tsx          # Entry point
 ├── index.html
-├── vite.config.js
 ├── tsconfig.json
+├── vite.config.ts
 ├── package.json
-└── .env.example
+└── README.md
 ```
 
-## 7. Data Visualization
+## 👤 Author
 
-Five chart configurations built with Recharts:
+**Sophie Li** — Data Science, BNBU (Beijing Normal University - Hong Kong Baptist University United International College)
 
-| Chart | Tab | Purpose |
-|---|---|---|
-| Grouped `BarChart` | Overview, Sentiment | Final model Accuracy / F1 / ROC-AUC side-by-side |
-| `LineChart` | Experiments | Rolling-window sweep & strict tuning-version trends |
-| Custom HTML bar list | Experiments | Feature importance (top 15, normalized to max) |
-| Stacked `BarChart` | Maotai | Yearly up-day / down-day ratio (100 % stacked) |
-| `Cell`-colored `BarChart` | Risk & Backtest | Per-trade strategy return (green = positive, red = negative) |
-
-All charts use `ResponsiveContainer` for fluid width.
-
-## 8. Backend API Contract
-
-<!-- 
-  List the REST endpoints consumed, e.g.:
-  - GET  /metadata
-  - GET  /results/experiments
-  - POST /predict/by-date
-  - POST /signal/risk
-  - POST /backtest/simple
-  - GET  /explain/feature-importance
-  - GET  /strict/performance
-  - GET  /results/maotai-up-down
-  (Full TypeScript types live in src/api.ts)
--->
-
-## 9. Screenshots
-
-<!-- Add screenshots after deploying or running locally -->
+Frontend independently designed and developed as a course project.
