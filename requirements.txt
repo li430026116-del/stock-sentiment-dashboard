@@ -1,0 +1,11 @@
+# Frontend dependencies are installed with npm, not pip.
+# This file records the exact package versions used by the frontend.
+@types/react==19.2.14
+@types/react-dom==19.2.3
+@vitejs/plugin-react==5.2.0
+lucide-react==0.562.0
+react==19.2.5
+react-dom==19.2.5
+recharts==3.8.1
+typescript==5.9.3
+vite==7.3.2
